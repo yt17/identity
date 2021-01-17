@@ -1,0 +1,14 @@
+﻿@model List<AppUser>; 
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+
+<h1>Index</h1>
+
+
+@foreach (AppUser item in Model)
+	{
+		 @item.UserName
+	}
