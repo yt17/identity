@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityProje1.CustomValidations;
 using IdentityProje1.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -38,7 +39,9 @@ namespace IdentityProje1
                 opts.Password.RequireUppercase = false;
                 opts.Password.RequireDigit = false;
 
-            }).AddEntityFrameworkStores<AppDbContext>();
+            })
+                .AddPasswordValidator<PasswordValidator>()
+                .AddEntityFrameworkStores<AppDbContext>();
 
             services.AddControllersWithViews();
 
