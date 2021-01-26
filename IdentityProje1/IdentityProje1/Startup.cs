@@ -6,7 +6,9 @@ using IdentityProje1.CustomValidations;
 using IdentityProje1.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,8 +33,15 @@ namespace IdentityProje1
                 opts.UseSqlServer(Configuration["ConnectionStrings:Connection1"]);
             });
 
-            services.AddIdentity<AppUser, AppRole>(opts=>
+
+
+
+            services.AddIdentity<AppUser, AppRole>(opts =>
             {
+                opts.User.RequireUniqueEmail = true;
+                opts.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+
+
                 opts.Password.RequiredLength = 4;
                 opts.Password.RequireNonAlphanumeric = false;
                 opts.Password.RequireLowercase = false;
@@ -40,12 +49,32 @@ namespace IdentityProje1
                 opts.Password.RequireDigit = false;
 
             })
+                .AddUserValidator<UserValidator>()
                 .AddPasswordValidator<PasswordValidator>()
-                .AddEntityFrameworkStores<AppDbContext>();
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
+                
 
-            services.AddControllersWithViews();
 
+            CookieBuilder cookieBuilder = new CookieBuilder();
 
+            cookieBuilder.Name = "website";
+            cookieBuilder.HttpOnly = false;
+           // cookieBuilder.Expiration = System.TimeSpan.FromDays(60);
+            cookieBuilder.SameSite = SameSiteMode.Lax;
+            cookieBuilder.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            
+
+            services.ConfigureApplicationCookie(opts => {
+                opts.LoginPath = new PathString("/Home/Login");
+                opts.Cookie = cookieBuilder;
+                opts.ExpireTimeSpan= System.TimeSpan.FromDays(60);
+                opts.SlidingExpiration = false;
+            });
+
+            //            services.AddControllersWithViews();
+            services.AddMvc();
+             
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,13 +85,15 @@ namespace IdentityProje1
             //    app.UseDeveloperExceptionPage();
 
             //}
+    
             app.UseDeveloperExceptionPage();
             app.UseStatusCodePages();
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseRouting();
+            app.UseAuthorization();
             //app.UseMvcWithDefaultRoute();
-            app.UseCors();
+            // app.UseCors();
 
             //app.UseRouting();
             //app.UseMvcWithDefaultRoute();
@@ -74,11 +105,11 @@ namespace IdentityProje1
             //        await context.Response.WriteAsync("Hello World!");
             //    });
             //});
-            app.UseEndpoints(endpoints =>
-            {
+            app.UseEndpoints(endpoints => {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
             });
         }
     }

@@ -7,18 +7,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IdentityProje1.Models;
 using Microsoft.AspNetCore.Identity;
+using IdentityProje1.Helper;
 
 namespace IdentityProje1.Controllers
 {
     public class HomeController : Controller
     {
         private UserManager<AppUser> Usermanager { get; }
+        private SignInManager<AppUser> SignInManager { get; }
         
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> Usermanager)
+        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> Usermanager,SignInManager<AppUser> signInManager)
         {
             _logger = logger;
+            SignInManager = signInManager;
             this.Usermanager = Usermanager;
         }
 
@@ -38,8 +41,58 @@ namespace IdentityProje1.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public IActionResult Login()
+        public IActionResult Login(string ReturnUrl)
         {
+            TempData["ReturnUrl"] = ReturnUrl;
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                AppUser user = await Usermanager.FindByEmailAsync(model.Email);
+                if (user!=null)
+                {
+                    if (await Usermanager.IsLockedOutAsync(user))
+                    {
+                        ModelState.AddModelError("", "hesap kilitli");
+                    }
+
+                    await SignInManager.SignOutAsync();
+                    Microsoft.AspNetCore.Identity.SignInResult result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, false,false);
+                    if (result.Succeeded)
+                    {
+                        if (TempData["ReturnUrl"]!=null)
+                        {
+                            return Redirect(TempData["ReturnUrl"].ToString());
+                        }
+                        return RedirectToAction("Index", "Member");
+                    }
+                    else
+                    {
+                        await Usermanager.AccessFailedAsync(user);
+
+                        int fail = await Usermanager.GetAccessFailedCountAsync(user);
+                        ModelState.AddModelError("", $"{fail} kez basarisiz giris");
+                        if (fail==3)
+                        {
+                            await Usermanager.SetLockoutEndDateAsync(user,new System.DateTimeOffset(DateTime.Now.AddMinutes(20)));
+                            ModelState.AddModelError("", "ban for 20 minutes");
+                        }
+                        else
+                        {
+                            ModelState.AddModelError(nameof(model.Email), "gecersiz mail veya sifre");
+                        }
+                    }
+                }
+                else
+                {
+                    //return RedirectToAction()
+                    ModelState.AddModelError(nameof(model.Email), "gecersiz mail veya sifre");
+                }
+
+            }
             return View();
         }
 
@@ -69,6 +122,74 @@ namespace IdentityProje1.Controllers
                         ModelState.AddModelError("", item.Description);
                     }
                 }
+            }
+            return View();
+        }
+
+        public IActionResult ResetPassword()
+        {
+            return View(); 
+        }
+        [HttpPost]
+        public IActionResult ResetPassword(PasswordViewModel model)
+        {
+            AppUser user = Usermanager.FindByEmailAsync(model.Email).Result;
+
+            if (user!=null)
+            {
+                string passwordResettoken = Usermanager.GeneratePasswordResetTokenAsync(user).Result;
+                string passwrodlink = Url.Action("ResetPasswordConfirm", "Home", new
+                {
+                    userid=user.Id,
+                    token=passwordResettoken
+
+                },HttpContext.Request.Scheme);
+
+                MailHelper.SendMail(passwrodlink,model.Email,"mmesaj'",false);
+
+                ViewBag.status = "tmaam";
+
+            }
+            else
+            {
+                ModelState.AddModelError("", "boyle biri yok");
+            }
+            return View(model);
+        }
+
+        public IActionResult ResetPasswordConfirm(string userid,string token)
+        {
+            TempData["token"]= token;
+            TempData["userid"] = userid;
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ResetPasswordConfirm(PasswordVM model)
+        {
+            string token = TempData["token"].ToString();
+            string id = TempData["userid"].ToString();
+
+            AppUser user = await Usermanager.FindByIdAsync(id);
+            if (user!=null)
+            {
+                IdentityResult result = await Usermanager.ResetPasswordAsync(user,token,model.Password);
+                if (result.Succeeded)
+                {
+                    await Usermanager.UpdateSecurityStampAsync(user);
+                    TempData["passwordResetInfo"] = "sifreniz basariyla yenilendi";
+                }
+                else
+                {
+                    foreach (var item in result.Errors)
+                    {
+                        ModelState.AddModelError("", item.Description);
+                    }
+                }
+
+            }
+            else
+            {
+                ModelState.AddModelError("", "boyle biri yok");
             }
             return View();
         }
