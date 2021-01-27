@@ -27,10 +27,44 @@ namespace IdentityProje1.Controllers
 
             UserViewModel userViewModel = user.Adapt<UserViewModel>();
            // userViewModel.Name = user.UserName;
-           
-
-            
             return View(userViewModel);
+        }
+        public IActionResult ChangeMyPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult ChangeMyPassword(PasswordChangeModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                AppUser user =Usermanager.FindByNameAsync(User.Identity.Name).Result;
+                if (user!=null)
+                {
+                    bool exist = Usermanager.CheckPasswordAsync(user, model.PasswordOld).Result;
+                    if (exist)
+                    {
+                        IdentityResult result = Usermanager.ChangePasswordAsync(user, model.PasswordOld, model.PasswordNew
+                            ).Result;
+                        if (result.Succeeded)
+                        {
+                            Usermanager.UpdateSecurityStampAsync(user);
+                            SignInManager.SignOutAsync();
+                            SignInManager.PasswordSignInAsync(user, model.PasswordNew, false, false);
+
+                            ViewBag.success = true;
+                        }
+                        else
+                        {
+                            foreach (var item in result.Errors)
+                            {
+                                ModelState.AddModelError("", item.Description);
+                            }
+                        }
+                    }
+                }
+            }
+            return View(model);
         }
     }
 }

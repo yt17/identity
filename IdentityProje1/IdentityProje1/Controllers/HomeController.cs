@@ -27,6 +27,10 @@ namespace IdentityProje1.Controllers
 
         public IActionResult Index()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Member", "Index");
+            }
             return View();
         }
 
