@@ -60,9 +60,10 @@ namespace IdentityProje1.Controllers
                     }
 
                     await SignInManager.SignOutAsync();
-                    Microsoft.AspNetCore.Identity.SignInResult result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, false,false);
+                    Microsoft.AspNetCore.Identity.SignInResult result = await SignInManager.PasswordSignInAsync(user, model.Password, false,false);
                     if (result.Succeeded)
                     {
+                        await Usermanager.ResetAccessFailedCountAsync(user);
                         if (TempData["ReturnUrl"]!=null)
                         {
                             return Redirect(TempData["ReturnUrl"].ToString());
