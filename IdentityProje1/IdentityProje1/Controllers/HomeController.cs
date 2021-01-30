@@ -11,18 +11,18 @@ using IdentityProje1.Helper;
 
 namespace IdentityProje1.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : Base
     {
-        private UserManager<AppUser> Usermanager { get; }
-        private SignInManager<AppUser> SignInManager { get; }
+        //private UserManager<AppUser> Usermanager { get; }
+        //private SignInManager<AppUser> SignInManager { get; }
         
-        private readonly ILogger<HomeController> _logger;
+        //private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> Usermanager,SignInManager<AppUser> signInManager)
+        public HomeController(UserManager<AppUser> Usermanager,SignInManager<AppUser> SignInManager) :base(Usermanager, SignInManager)
         {
-            _logger = logger;
-            SignInManager = signInManager;
-            this.Usermanager = Usermanager;
+          //  _logger = logger;
+            //SignInManager = signInManager;
+            //this.Usermanager = Usermanager;
         }
 
         public IActionResult Index()
@@ -55,7 +55,8 @@ namespace IdentityProje1.Controllers
         {
             if (ModelState.IsValid)
             {
-                AppUser user = await Usermanager.FindByEmailAsync(model.Email);
+                //AppUser user = await Usermanager.FindByEmailAsync(model.Email);
+                AppUser user = CurrentUser;
                 if (user!=null)
                 {
                     if (await Usermanager.IsLockedOutAsync(user))
@@ -122,10 +123,7 @@ namespace IdentityProje1.Controllers
                 }
                 else
                 {
-                    foreach (var item in identityResult.Errors)
-                    {
-                        ModelState.AddModelError("", item.Description);
-                    }
+                    AddErrors(identityResult);
                 }
             }
             return View();
@@ -138,8 +136,8 @@ namespace IdentityProje1.Controllers
         [HttpPost]
         public IActionResult ResetPassword(PasswordViewModel model)
         {
-            AppUser user = Usermanager.FindByEmailAsync(model.Email).Result;
-
+            //AppUser user = Usermanager.FindByEmailAsync(model.Email).Result;
+            AppUser user = CurrentUser;
             if (user!=null)
             {
                 string passwordResettoken = Usermanager.GeneratePasswordResetTokenAsync(user).Result;
@@ -185,10 +183,7 @@ namespace IdentityProje1.Controllers
                 }
                 else
                 {
-                    foreach (var item in result.Errors)
-                    {
-                        ModelState.AddModelError("", item.Description);
-                    }
+                    AddErrors(result);
                 }
 
             }

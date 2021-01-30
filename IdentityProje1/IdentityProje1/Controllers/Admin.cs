@@ -3,21 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityProje1.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityProje1.Controllers
 {
-    public class Admin : Controller
+    public class Admin : Base
     {
-        private UserManager<AppUser> userManager { get; }
-        public Admin(UserManager<AppUser> userManager)
+       
+        public Admin(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager) : base(Usermanager, SignInManager)
         {
-            this.userManager = userManager;
+           // this.userManager = userManager;
         }
+        [Authorize]
         public IActionResult Index()
         {
-            return View(userManager.Users.ToList());
+            return View(Usermanager.Users.ToList());
         }
 
     }

@@ -10,20 +10,20 @@ using Mapster;
 namespace IdentityProje1.Controllers
 {
     [Authorize]
-    public class Member : Controller
+    public class Member : Base
     {
-        private UserManager<AppUser> Usermanager { get; }
-        private SignInManager<AppUser> SignInManager { get; }
-        public Member(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager)
+        //private UserManager<AppUser> Usermanager { get; }
+        //private SignInManager<AppUser> SignInManager { get; }
+        public Member(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager):base(Usermanager,SignInManager)
         {
-            this.Usermanager = Usermanager;
-            this.SignInManager = SignInManager;
+            //this.Usermanager = Usermanager;
+            //this.SignInManager = SignInManager;
         }
 
 
         public IActionResult Index()
         {
-            AppUser user = Usermanager.FindByNameAsync(User.Identity.Name).Result;
+            AppUser user = CurrentUser;
 
             UserViewModel userViewModel = user.Adapt<UserViewModel>();
            // userViewModel.Name = user.UserName;
@@ -38,7 +38,8 @@ namespace IdentityProje1.Controllers
         {
             if (ModelState.IsValid)
             {
-                AppUser user =Usermanager.FindByNameAsync(User.Identity.Name).Result;
+                AppUser user = CurrentUser;
+                
                 if (user!=null)
                 {
                     bool exist = Usermanager.CheckPasswordAsync(user, model.PasswordOld).Result;
@@ -56,10 +57,7 @@ namespace IdentityProje1.Controllers
                         }
                         else
                         {
-                            foreach (var item in result.Errors)
-                            {
-                                ModelState.AddModelError("", item.Description);
-                            }
+                            AddErrors(result);
                         }
                     }
                 }
