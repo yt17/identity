@@ -49,5 +49,77 @@ namespace IdentityProje1.Controllers
             }       
         }
 
+        public IActionResult ListRole()
+        {
+            List<AppRole> roles = RoleManager.Roles.ToList();
+            return View(roles);
+        }
+
+        public IActionResult DeleteRole(string ID)
+        {
+            AppRole role =RoleManager.FindByIdAsync(ID).Result;
+            if (role!=null)
+            {
+                IdentityResult result = RoleManager.DeleteAsync(role).Result;
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("ListRole", "Admin");
+                }
+                else
+                {
+                    ViewBag.msj = "hata var";
+                    AddErrors(result);
+                    return RedirectToAction("ListRole", "Admin");
+                }
+
+            }
+            else
+            {
+                return RedirectToAction("ListRole", "Admin");
+            }
+
+            
+        }
+
+        public IActionResult UpdateRole(string ID)
+        {
+            AppRole role = RoleManager.FindByIdAsync(ID).Result;
+            RoleViewModel model = new RoleViewModel();
+            role.Id = role.Id;
+            role.Name = role.Name;
+
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateRole(RoleViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                AppRole role = RoleManager.FindByIdAsync(model.ID).Result;
+                if (role!=null)
+                {
+                    role.Name = model.Name;
+                    IdentityResult result = RoleManager.UpdateAsync(role).Result;
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("ListRole", "Admin");
+                    }
+                    else
+                    {
+                        AddErrors(result);
+                        return View(model);
+                    }
+                }
+                else
+                {                    
+                    return View(model);
+                }
+            }
+            else
+            {
+                return View(model);
+            }
+        }
+
     }
 }
