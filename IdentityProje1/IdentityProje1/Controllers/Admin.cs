@@ -12,7 +12,7 @@ namespace IdentityProje1.Controllers
     public class Admin : Base
     {
        
-        public Admin(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager) : base(Usermanager, SignInManager)
+        public Admin(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager, RoleManager<AppRole> RoleManager) : base(Usermanager,SignInManager,RoleManager)
         {
            // this.userManager = userManager;
         }
@@ -20,6 +20,33 @@ namespace IdentityProje1.Controllers
         public IActionResult Index()
         {
             return View(Usermanager.Users.ToList());
+        }
+        public IActionResult RoleEkle()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> RoleEkle(RoleEkle roleEkle)
+        {
+            if (ModelState.IsValid)
+            {
+                AppRole role = new AppRole();
+                role.Name = roleEkle.RoleName;
+                IdentityResult result =RoleManager.CreateAsync(role).Result;
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
+                else
+                {
+                    AddErrors(result);
+                    return View(roleEkle);
+                }
+            }
+            else
+            {
+                return View(roleEkle);
+            }       
         }
 
     }

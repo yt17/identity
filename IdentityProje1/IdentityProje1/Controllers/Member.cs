@@ -14,7 +14,7 @@ namespace IdentityProje1.Controllers
     {
         //private UserManager<AppUser> Usermanager { get; }
         //private SignInManager<AppUser> SignInManager { get; }
-        public Member(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager):base(Usermanager,SignInManager)
+        public Member(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager,RoleManager<AppRole> RoleManager):base(Usermanager,SignInManager, RoleManager)
         {
             //this.Usermanager = Usermanager;
             //this.SignInManager = SignInManager;

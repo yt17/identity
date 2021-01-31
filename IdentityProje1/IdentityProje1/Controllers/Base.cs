@@ -12,10 +12,12 @@ namespace IdentityProje1.Controllers
     {
         protected UserManager<AppUser> Usermanager { get; }
         protected SignInManager<AppUser> SignInManager { get; }
-        public Base(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager)
+        protected RoleManager<AppRole> RoleManager { get; }
+        public Base(UserManager<AppUser> Usermanager, SignInManager<AppUser> SignInManager,RoleManager<AppRole> RoleManager)
         {
             this.Usermanager = Usermanager;
             this.SignInManager = SignInManager;
+            this.RoleManager = RoleManager;
         }
         protected AppUser CurrentUser => Usermanager.FindByNameAsync(User.Identity.Name).Result;
         public void AddErrors(IdentityResult result)

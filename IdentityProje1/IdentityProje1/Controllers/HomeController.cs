@@ -18,7 +18,7 @@ namespace IdentityProje1.Controllers
         
         //private readonly ILogger<HomeController> _logger;
 
-        public HomeController(UserManager<AppUser> Usermanager,SignInManager<AppUser> SignInManager) :base(Usermanager, SignInManager)
+        public HomeController(UserManager<AppUser> Usermanager,SignInManager<AppUser> SignInManager,RoleManager<AppRole> RoleManager) :base(Usermanager, SignInManager, RoleManager)
         {
           //  _logger = logger;
             //SignInManager = signInManager;

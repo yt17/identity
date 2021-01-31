@@ -72,6 +72,7 @@ namespace IdentityProje1
                 opts.Cookie = cookieBuilder;
                 opts.ExpireTimeSpan= System.TimeSpan.FromDays(60);
                 opts.SlidingExpiration = false;
+                opts.AccessDeniedPath = new PathString("/Member/AccessDenied");
             });
 
             //            services.AddControllersWithViews();
