@@ -121,5 +121,87 @@ namespace IdentityProje1.Controllers
             }
         }
 
+        public IActionResult UserRoleAtttemption(string UserId)
+        {
+            AppUser appUser = Usermanager.FindByIdAsync(UserId).Result;
+            ViewBag.UserName = appUser.UserName;
+
+            IQueryable<AppRole> roles = RoleManager.Roles;
+
+            List<string> UserRoles = Usermanager.GetRolesAsync(appUser).Result as List<string>;
+
+            List<UserRoleViewModel> roleViewModels = new List<UserRoleViewModel>();
+
+            foreach (var role in roles)
+            {
+                UserRoleViewModel usrvm = new UserRoleViewModel();
+                usrvm.RoleID = role.Id;
+                usrvm.RoleName = role.Name;
+                if (UserRoles.Contains(role.Name))
+                {
+                    usrvm.exist = true;
+                }
+                else
+                {
+                    usrvm.exist = false;
+                }
+                roleViewModels.Add(usrvm);
+            }
+            //List<string> Roles=RoleManager.GetRoleIdAsync(RoleId).Result as List<string>();
+            return View(roleViewModels);
+        }
+
+        public IActionResult Uyeler()
+        {
+            List<UsersModel> liste = Usermanager.Users.Select(w => new UsersModel
+            {
+                Email = w.Email,
+                UserName=w.UserName,
+                UserID=w.Id
+            }).ToList();
+            return View(liste);
+        }
+
+        public IActionResult RoleVer(string ID) 
+        {
+            ViewBag.User = ID;
+            List<RoleViewModel> roller = RoleManager.Roles.Select(w => new RoleViewModel
+            {
+                ID = w.Id,
+                Name = w.Name                
+            }).ToList();
+            
+            return View(roller);
+        }
+        [HttpPost]
+        public async Task<IActionResult> RoleVer(RoleViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                //var val = ViewBag.User;
+                AppUser user = await Usermanager.FindByIdAsync(model.Name);
+                //AppRole role = RoleManager.GetRoleIdAsync().Result;
+                AppRole role = RoleManager.FindByIdAsync(model.ID).Result;
+                IdentityResult res = Usermanager.AddToRoleAsync(user,role.Name.ToString()).Result;
+                //IdentityResult res = RoleManager.SetRoleNameAsync(role, user.Id).Result;
+                if (res.Succeeded)
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
+                else
+                {
+                    AddErrors(res);
+                    return View();
+                }
+            }
+            else
+            {
+                return View();
+            }
+        }
+            
+
+        
+
     }
 }

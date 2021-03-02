@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using IdentityProje1.Models;
 using Microsoft.AspNetCore.Identity;
 using IdentityProje1.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityProje1.Controllers
 {
@@ -55,8 +56,8 @@ namespace IdentityProje1.Controllers
         {
             if (ModelState.IsValid)
             {
-                //AppUser user = await Usermanager.FindByEmailAsync(model.Email);
-                AppUser user = CurrentUser;
+                AppUser user = await Usermanager.FindByEmailAsync(model.Email);
+                //AppUser user = CurrentUser;
                 if (user!=null)
                 {
                     if (await Usermanager.IsLockedOutAsync(user))
@@ -191,6 +192,13 @@ namespace IdentityProje1.Controllers
             {
                 ModelState.AddModelError("", "boyle biri yok");
             }
+            return View();
+        }
+
+        //[Authorize]
+        [Authorize(Roles ="Role1")]
+        public IActionResult YetkiTest()
+        {
             return View();
         }
 
