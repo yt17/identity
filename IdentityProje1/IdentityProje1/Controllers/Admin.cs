@@ -199,7 +199,12 @@ namespace IdentityProje1.Controllers
                 return View();
             }
         }
-            
+
+        public IActionResult ClaimList()
+        {
+            return View(User.Claims.ToList());
+        }
+           
 
         
 

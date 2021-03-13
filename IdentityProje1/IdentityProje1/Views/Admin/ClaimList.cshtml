@@ -1,0 +1,16 @@
+﻿@model List<System.Security.Claims.Claim>
+@{
+    ViewData["Title"] = "ClaimList";
+}
+
+<h1>ClaimList</h1>
+
+@foreach (System.Security.Claims.Claim item in Model)
+{
+    @item.Subject.AuthenticationType; <p> | </p>
+    @item.Issuer; <p> | </p>
+    @item.Type; <p> | </p>
+    @item.Value; <p> | </p>
+    <br />
+}
+
