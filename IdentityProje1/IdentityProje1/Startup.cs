@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using IdentityProje1.CustomValidations;
 using IdentityProje1.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -28,13 +30,29 @@ namespace IdentityProje1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<IAuthorizationHandler, ExpireExchangeHandler>();
+            
             services.AddDbContext<AppDbContext>(opts =>
             {
                 opts.UseSqlServer(Configuration["ConnectionStrings:Connection1"]);
             });
 
 
-
+            services.AddAuthorization(x =>
+            {
+            x.AddPolicy("AnkaraPolicy", policy =>
+            {
+                policy.RequireClaim("City", "Ankara");
+            });
+            x.AddPolicy("ViolancePolicy", policy =>
+            {
+                policy.RequireClaim("Violance");
+            });
+            x.AddPolicy("ExchangePolicy", policy =>{
+                policy.AddRequirements(new ExpireDateExchangeRequirement());
+            });
+                //ViolancePolicty
+            });
 
             services.AddIdentity<AppUser, AppRole>(opts =>
             {
@@ -76,6 +94,10 @@ namespace IdentityProje1
             });
 
             //            services.AddControllersWithViews();
+            services.AddScoped<IClaimsTransformation, ClaimProvider.ClaimProvider>();
+            
+
+
             services.AddMvc();
              
         }

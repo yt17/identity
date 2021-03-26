@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using IdentityProje1.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -205,8 +206,51 @@ namespace IdentityProje1.Controllers
             return View(User.Claims.ToList());
         }
            
+        [Authorize(Policy ="AnkaraPolicy")]
+        public IActionResult AnkaraPage()
+        {
+            return View();
+        }
 
-        
+        [Authorize(Policy = "ViolancePolicy")]
+        public IActionResult Violance()
+        {
+            return View();
+        }
+
+        public IActionResult AccessDenied(string ReturnUrl)
+        {
+            if (ReturnUrl.Contains("Ankara"))
+            {
+                ViewBag.message = "buraya yetkiniz yok";
+            }
+            return View();
+        }
+
+
+        [Authorize(Policy = "ExchangePolicy")]
+        public IActionResult Exchange()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> ExchangeRouting()
+        {
+            bool result = User.HasClaim(x => x.Type == "ExpireChangeDate");
+
+            if (!result)
+            {
+                Claim ExpireDateExchange = new Claim("ExpireChangeDate", DateTime.Now.AddDays(30).Date.ToShortDateString(), ClaimValueTypes.String, "Internal");
+                await Usermanager.AddClaimAsync(CurrentUser, ExpireDateExchange);
+                await SignInManager.SignOutAsync();
+                await SignInManager.SignInAsync(CurrentUser, true);
+            }
+            return RedirectToAction("Exchange");
+        }
+
+
+
+
 
     }
 }
